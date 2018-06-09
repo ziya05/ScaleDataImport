@@ -31,8 +31,8 @@ public class App
     		throws IllegalArgumentException, IllegalAccessException, 
     		ClassNotFoundException, SQLException, IOException, BadLocationException
     {
-    	final String scaleNumber = "1304";
-    	String dirPath = "C:\\Users\\Night\\Desktop\\量表资料\\量表资料\\";
+    	final String scaleNumber = "1706";
+    	String dirPath = "E:\\projects\\resources\\scale\\量表资料\\量表资料\\";
     	File f = new File(dirPath);
         File[] files = f.listFiles(new FilenameFilter(){
 
@@ -71,20 +71,20 @@ public class App
     		importData(mainFile, descFile);
     		
     	} catch(IllegalArgumentException e) {
-    		delete();    		
+    		//delete();    		
     		throw e;
     	} catch(IllegalAccessException e) {
-    		delete();    		
+    		//delete();    		
     		throw e;
     		
     	} catch(ClassNotFoundException e) {
-    		delete();    		
+    		//delete();    		
     		throw e;
     	} catch(SQLException e) {
-    		delete();    		
+    		//delete();    		
     		throw e;
     	} catch(IOException e) {
-    		delete();    		
+    		//delete();    		
     		throw e;
     	} 
     	

@@ -59,7 +59,7 @@ public class MySqlDao {
 		conn.close();
 		
 		return map;
-	}
+	} 
 	
 	public int insert(Object obj) throws IllegalArgumentException, IllegalAccessException, ClassNotFoundException, SQLException {
 		
@@ -224,7 +224,7 @@ public class MySqlDao {
 	
 	private Connection getConn() throws SQLException, ClassNotFoundException {
 		Class.forName("com.mysql.cj.jdbc.Driver");
-		String url = "jdbc:mysql://localhost:3306/scale?characterEncoding=utf8&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false";
+		String url = "jdbc:mysql://localhost:3306/scale?characterEncoding=utf8&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false&allowPublicKeyRetrieval=true";
 		Connection conn = DriverManager.getConnection(url, "scale", "scale-01");
 		
 		return conn;
