@@ -62,7 +62,7 @@ public class ScaleExcelReader {
 	}
 	
 	private void readScale() {
-		String pattern = ".*?(\\d*)-(.*)\\.xlsx";
+		String pattern = ".*?\\\\([0-9a-zA-Z]{4})-(.*?)\\.xlsx";
 		Pattern r = Pattern.compile(pattern);
 		
 		Matcher m = r.matcher(this.filePath);

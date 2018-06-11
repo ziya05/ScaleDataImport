@@ -31,7 +31,7 @@ public class App
     		throws IllegalArgumentException, IllegalAccessException, 
     		ClassNotFoundException, SQLException, IOException, BadLocationException
     {
-    	final String scaleNumber = "1706";
+    	final String scaleNumber = "MBTI";
     	String dirPath = "E:\\projects\\resources\\scale\\量表资料\\量表资料\\";
     	File f = new File(dirPath);
         File[] files = f.listFiles(new FilenameFilter(){
