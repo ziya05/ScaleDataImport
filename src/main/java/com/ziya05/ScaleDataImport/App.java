@@ -18,6 +18,8 @@ import com.ziya05.ScaleDataImport.Bean.ScaleBean;
 import com.ziya05.ScaleDataImport.Bean.FactorBean;
 import com.ziya05.ScaleDataImport.Bean.GroupBean;
 import com.ziya05.ScaleDataImport.Bean.LevelBean;
+import com.ziya05.ScaleDataImport.Bean.FactorMapBean;
+import com.ziya05.ScaleDataImport.Bean.GlobalJumpBean;
 import com.ziya05.ScaleDataImport.Bean.OptionBean;
 
 /**
@@ -31,8 +33,9 @@ public class App
     		throws IllegalArgumentException, IllegalAccessException, 
     		ClassNotFoundException, SQLException, IOException, BadLocationException
     {
-    	final String scaleNumber = "MBTI";
-    	String dirPath = "E:\\projects\\resources\\scale\\量表资料\\量表资料\\";
+    	final String scaleNumber = "1804";
+    	//String dirPath = "E:\\projects\\resources\\scale\\量表资料\\量表资料\\";
+    	String dirPath = "E:\\projects\\resources\\scale\\spring 2.0\\新增量表\\待添加量表资料20180704\\";
     	File f = new File(dirPath);
         File[] files = f.listFiles(new FilenameFilter(){
 
@@ -113,12 +116,13 @@ public class App
         String scaleDescription = ScaleRTFReader.read(descPath);
         scaleBean.setDescription(scaleDescription);
         
-        int scaleId = dao.insert(scaleBean);
-        
         List<QuestionBean> questionLst = reader.getQuestionLst();
+        scaleBean.setQuestionCount(questionLst.size());
         
-        
+        int scaleId = dao.insert(scaleBean);
+
         System.out.println("量表基础信息导入成功， id为：" + scaleId);
+        
         
         for(QuestionBean question : questionLst) {
         	question.setScaleId(scaleId);
@@ -190,6 +194,28 @@ public class App
         	dao.insert(relation);
         }
         System.out.println("量表关系导入成功！");
+        
+        List<FactorMapBean> mapLst = reader.getMapLst();
+        if (mapLst != null) {
+	        for(FactorMapBean map : mapLst) {
+	        	int factorId = factorMapNew.get(map.getFactorName());
+	        	
+	        	map.setScaleId(scaleId);
+	        	map.setFactorId(factorId);
+	        	dao.insert(map);
+	        }
+	        System.out.println("量表因子转换式导入成功！");
+        }
+        
+        List<GlobalJumpBean> globalJumpLst = reader.getGroupJumpLst();
+        if (globalJumpLst != null) {
+        	for(GlobalJumpBean globalJump : globalJumpLst) {
+        		globalJump.setScaleId(scaleId);
+        		dao.insert(globalJump);
+        	}
+        	
+        	System.out.println("题目跳转导入成功！");
+        }
         
         System.out.println("量表导入成功！ [" + scaleBean.getScaleName() + "]");
     }

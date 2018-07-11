@@ -184,6 +184,8 @@ public class MySqlDao {
 		deleteTable(id, "scaleId", "TesteeData");
 		deleteTable(id, "scaleId", "TesteePersonalInfo");
 		
+		deleteTable(id, "scaleId", "GlobalJump");
+		deleteTable(id, "scaleId", "FactorMap");
 		deleteTable(id, "scaleId", "Relation");
 		deleteTable(id, "scaleId", "`Group`");
 		deleteTable(id, "scaleId", "Level");

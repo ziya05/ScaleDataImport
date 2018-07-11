@@ -20,6 +20,8 @@ import com.mysql.cj.util.StringUtils;
 import com.ziya05.ScaleDataImport.Bean.FactorBean;
 import com.ziya05.ScaleDataImport.Bean.GroupBean;
 import com.ziya05.ScaleDataImport.Bean.LevelBean;
+import com.ziya05.ScaleDataImport.Bean.FactorMapBean;
+import com.ziya05.ScaleDataImport.Bean.GlobalJumpBean;
 import com.ziya05.ScaleDataImport.Bean.OptionBean;
 import com.ziya05.ScaleDataImport.Bean.QuestionBean;
 import com.ziya05.ScaleDataImport.Bean.RelationBean;
@@ -35,6 +37,8 @@ public class ScaleExcelReader {
 	private List<GroupBean> groupLst;
 	private List<LevelBean> levelLst;
 	private List<RelationBean> relationLst;
+	private List<FactorMapBean> mapLst;
+	private List<GlobalJumpBean> groupJumpLst;
 	
 	public ScaleExcelReader() {
 		
@@ -56,6 +60,8 @@ public class ScaleExcelReader {
 		readGroup();
 		readLevel();
 		readRelation();
+		readMap();
+		readGlobalJump();
 		
 		workbook.close();
 		inputStream.close();
@@ -330,6 +336,10 @@ public class ScaleExcelReader {
 			System.out.println("[Relation]当前处理的行号：" + i);
 			XSSFRow row = sheet.getRow(i);
 			
+			if (row == null) {
+				break;
+			}
+			
 			String factorName = getStringCell(row, 0);
 			if (StringUtils.isNullOrEmpty(factorName)) {
 				break;
@@ -343,6 +353,82 @@ public class ScaleExcelReader {
 			relation.setGroupName(groupName);
 			relation.setPoints(points);
 			relationLst.add(relation);
+		}
+	}
+	
+	private void readMap() {
+		XSSFSheet sheet = workbook.getSheet("因子转换式");
+		if (sheet == null) {
+			return;
+		}
+		
+		mapLst = new ArrayList<FactorMapBean>();
+		
+		int rowNumber = sheet.getLastRowNum();
+		for(int i = 1; i <= rowNumber; i++) {
+			System.out.println("[Map]当前处理的行号：" + i);
+			XSSFRow row = sheet.getRow(i);
+			
+			if (row == null) {
+				break;
+			}
+			
+			String factorName = getStringCell(row, 0);
+			if (StringUtils.isNullOrEmpty(factorName)) {
+				break;
+			}
+			
+			String name = getStringCell(row, 1);
+			String formula = getStringCell(row, 2);
+			
+			FactorMapBean map = new FactorMapBean();
+			map.setFactorName(factorName);
+			map.setName(name);
+			map.setFormula(this.convertMapFormula(formula));
+			
+			mapLst.add(map);
+		}
+	}
+	
+	private void readGlobalJump() {
+		XSSFSheet sheet = workbook.getSheet("题目跳转");
+		if (sheet == null) {
+			return;
+		}
+		
+		groupJumpLst = new ArrayList<GlobalJumpBean>();
+		
+		int rowNumber = sheet.getLastRowNum();
+		for(int i = 1; i <= rowNumber; i++) {
+			System.out.println("[GlobalJump]当前处理的行号：" + i);
+			XSSFRow row = sheet.getRow(i);
+			
+			if (row == null) {
+				break;
+			}
+			
+			String name = getStringCell(row, 0);
+			if (StringUtils.isNullOrEmpty(name)) {
+				break;
+			}
+			
+			int begin = getIntCell(row, 2);
+			int end = getIntCell(row, 3);
+			int continuous = getIntCell(row, 4);
+			int questionCount = getIntCell(row, 5);
+			double score = getDoubleCell(row, 6);
+			int jumpNo = getIntCell(row, 7);
+			
+			GlobalJumpBean globalJump = new GlobalJumpBean();
+			globalJump.setName(name);
+			globalJump.setBegin(begin);
+			globalJump.setEnd(end);
+			globalJump.setContinuous(continuous);
+			globalJump.setQuestionCount(questionCount);
+			globalJump.setScore(score);
+			globalJump.setJumpNo(jumpNo);
+			
+			groupJumpLst.add(globalJump);
 		}
 	}
 	
@@ -381,13 +467,76 @@ public class ScaleExcelReader {
     	} 
 		
 		formula = formula.replaceAll("FLOOR", "Math.floor")
+				.replaceAll("CEIL", "Math.ceil")
 				.replaceAll("IsMax", "isMax")   //与其他javascript function风格保持一致
 				.replaceAll(" Max", " Math.max")  //避免IsMax
+				.replaceAll("DoGet", "doGet")
 				.replaceAll("LEVEL\\((.*?)\\)", "LEVEL_$1") //替换LEVEL(F1)为LEVEL_F1, 避免与F1冲突
 	    		.replaceAll("AND", "&&")
 	    		.replaceAll("OR", "||");
+		
+		formula = convertMap(formula);
+		
+		formula = convertDoGet(formula);
+		
+		formula = convertEmbeddedIfThen(formula);
 
-		// 匹配 If Q1!=1 Then 1;\nIf Q2!=2 Then 1;...
+		formula = convertStandardIfThen(formula);
+	    
+	    formula = formula.replaceAll("基本信息.", "");
+	    	    
+	    return formula;
+	}
+		
+	private String convertMap(String formula) {
+		String reg = "Map\\((.*?),\"(.*?)\"\\)";
+
+		return formula.replaceAll(reg, "Map_$1_$2($1)")
+				.replaceAll("Map_F", "Map_FM"); // 避免替换因子分时出错
+	}
+	
+	private String convertDoGet(String formula) {
+		String reg = "doGet\\((P\\d+),(\\d+)\\)";
+		Pattern p = Pattern.compile(reg);
+		
+		StringBuffer sbFormula = new StringBuffer();
+		
+		Matcher m = p.matcher(formula);
+		while(m.find()) {
+			m.appendReplacement(sbFormula, convertDoGet(m));
+		}
+		
+		m.appendTail(sbFormula);
+		return sbFormula.toString();
+	}
+	
+	private String convertDoGet(Matcher m) {
+		String item = m.group(1);
+		String option = m.group(2);
+		
+		int oId = Integer.parseInt(option);
+		char ch = (char)((int)'A' + oId - 1);
+		return String.format("doGet(%s, '%s')", item, ch);
+	}
+	
+	private String convertEmbeddedIfThen(String formula) {
+		
+		String reg = "\\(If (.*?) Then (.*?);\\)";
+		Pattern p = Pattern.compile(reg);
+		
+		StringBuffer sbFormula = new StringBuffer();
+
+    	Matcher m = p.matcher(formula);
+    	while(m.find()) {
+    		m.appendReplacement(sbFormula, convertIfThen(m, 1, 2));
+    	}
+		
+    	m.appendTail(sbFormula);
+    	return sbFormula.toString();
+	}
+	
+	private String convertStandardIfThen(String formula) {
+
 		String reg = "((If .*? Then .*?;)\\n?)*";
 		Pattern p = Pattern.compile(reg);
 	    Matcher m =	p.matcher(formula);   
@@ -396,34 +545,65 @@ public class ScaleExcelReader {
 	    	String reg2 = "If (.*?) Then (.*?);";
 	    	Pattern p2 = Pattern.compile(reg2);
 	    	StringBuilder sbFormula = new StringBuilder();
-	    	
-	    	String reg3 = "基本信息\\.([^0-9]*?)([=><!]+)(([^0-9\\.\\s])*?)([\\s\\n\\)])";
-	    	
+
 	    	Matcher m2 = p2.matcher(formula);
 	    	while(m2.find()) {
-	    		String condition = m2.group(1) + " ";
-	    		String trueVal = m2.group(2);
-	    		
 	    		if (sbFormula.length() != 0) {
     				sbFormula.append("+");
     			}
 	    		
-	    		condition = condition.replaceAll(reg3, "$1$2'$3'$5")
-	    				.replaceAll("基本信息.", "");  //基本信息.年龄==15 替换值为数字的 
-	    		// 基本信息.性别==男 AND 基本信息.职业==学生 AND 基本信息.学历==初中 AND 基本信息.年龄 >=15 
-	    		// 性别=='男' AND 职业=='学生' AND 学历=='初中' AND 基本信息.年龄 >=15 
-	    		// 主要为了加单词两边的引号， 等号(或大于，小于号，不等于号)后不能有空格
-	    		
-	    		sbFormula.append("ifElse(" + condition + ", " + trueVal +", 0)");
+	    		String data = convertIfThen(m2, 1, 2);
+	    		sbFormula.append(data);
 	    	}
 	    	
 	    	return sbFormula.toString();
+	    } else {
+	    	return formula;
 	    }
-	    
-	    formula = formula.replaceAll("基本信息.", "");
-	    	    
-	    return formula;
+
 	}
+	
+	private String convertIfThen(Matcher matcher, int cIndex, int tIndex) {
+		String condition = matcher.group(cIndex) + " ";
+		String trueVal = matcher.group(tIndex);
+		
+		String reg = "基本信息\\.([^0-9]*?)([=><!]+)(([^0-9\\.\\s])*?)([\\s\\n\\)])";
+		
+		condition = condition.replaceAll(reg, "$1$2'$3'$5")
+				.replaceAll("基本信息.", "");  
+		
+		//基本信息.年龄==15 替换值为数字的 
+		// 基本信息.性别==男 AND 基本信息.职业==学生 AND 基本信息.学历==初中 AND 基本信息.年龄 >=15 
+		// 性别=='男' AND 职业=='学生' AND 学历=='初中' AND 基本信息.年龄 >=15 
+		// 主要为了加单词两边的引号， 等号(或大于，小于号，不等于号)后不能有空格
+		
+		return "ifElse(" + condition + ", " + trueVal +", 0)";
+	}
+	
+	private String convertMapFormula(String formula) {
+		
+		StringBuffer result = new StringBuffer();
+		Pattern pattern = Pattern.compile("(.*?)\\,(.*?);");
+		
+		Matcher matcher = pattern.matcher(formula);
+		
+		while(matcher.find()) {
+			String condition = matcher.group(1);
+			String r = matcher.group(2);
+			
+			result.append("if(");
+			result.append(condition);
+			result.append(")");
+			
+			result.append(" return ");
+			result.append(r);
+			result.append(";");
+
+		}
+		
+		return result.toString();		
+	}
+	
 	
 	private String getSqlValue(XSSFRow row, int colIndex) {
 		XSSFCell cell = row.getCell(colIndex);
@@ -441,6 +621,7 @@ public class ScaleExcelReader {
 	}
 	
 	private String getStringCell(XSSFRow row, int colIndex) {
+
 		XSSFCell cell = row.getCell(colIndex);
 		if (cell != null) {
 			CellType cellType = cell.getCellTypeEnum();
@@ -455,6 +636,36 @@ public class ScaleExcelReader {
 		}
 		
 		return "";
+	}
+	
+	private int getIntCell(XSSFRow row, int colIndex) {
+		XSSFCell cell = row.getCell(colIndex);
+		
+		if (cell != null) {
+			CellType cellType = cell.getCellTypeEnum();
+			if (cellType == CellType.STRING) {
+				return Integer.parseInt(cell.getStringCellValue());
+			}
+			
+			return (int) cell.getNumericCellValue();
+		}
+		
+		return 0;
+	}
+	
+	private double getDoubleCell(XSSFRow row, int colIndex) {
+		XSSFCell cell = row.getCell(colIndex);
+		
+		if (cell != null) {
+			CellType cellType = cell.getCellTypeEnum();
+			if (cellType == CellType.STRING) {
+				return Double.parseDouble(cell.getStringCellValue());
+			}
+			
+			return (double) cell.getNumericCellValue();
+		}
+		
+		return 0;
 	}
 	
 	public ScaleBean getScaleBean() {
@@ -481,6 +692,27 @@ public class ScaleExcelReader {
 	public List<RelationBean> getRelationLst() {
 		return relationLst;
 	}
+
+	
+	public List<FactorMapBean> getMapLst() {
+		return mapLst;
+	}
 	
 	
+	
+	public List<GlobalJumpBean> getGroupJumpLst() {
+		return groupJumpLst;
+	}
+
+	public static void main(String[] args) {
+		ScaleExcelReader reader = new ScaleExcelReader();
+		
+		String formula1 = "Q2+Q98+Q120+Q213+Q15+Q24+(If Q28==0 Then 1;)+(If Q47==0 Then 1;)+(If Q60==0 Then 1;)+(If Q73==0 Then 1;)+Q95+Q133+Q178+Q180+Q201+Q217+(If Q230==0 Then 1;)";
+		String formula2 = "If F46>99 Then 120; If F46<1 Then 20; If F46>=1 AND F46<=99 AND 基本信息.性别==男 Then Map(F46,\"Sc男\");If F46>=1 AND F46<=99 AND 基本信息.性别==女 Then Map(F46,\"Sc女\");";
+		String formula3 = "(If Q28==0 Then 1;)+DoGet(P5,1)+(If Q29==0 Then 1;)+DoGet(P32,2)+DoGet(P41,1)+DoGet(P43,5)+DoGet(P52,10)+DoGet(P67,1)+DoGet(P86,1)+DoGet(P104,1)+DoGet(P130,1)+DoGet(P138,1)+DoGet(P142,1)+DoGet(P158,1)+DoGet(P159,1)+DoGet(P182,1)+DoGet(P189,1)+DoGet(P193,1)+DoGet(P236,1)+DoGet(P259,1)+DoGet(P288,1)+DoGet(P290,1)+DoGet(P2,2)+DoGet(P8,2)+DoGet(P9,2)+DoGet(P18,2)+DoGet(P30,2)+DoGet(P36,2)+DoGet(P39,2)+DoGet(P46,2)+DoGet(P51,2)+DoGet(P57,2)+DoGet(P58,2)+DoGet(P64,2)+DoGet(P80,2)+DoGet(P88,2)+DoGet(P89,2)+DoGet(P95,2)+DoGet(P98,2)+DoGet(P107,2)+DoGet(P122,2)+DoGet(P131,2)+DoGet(P145,2)+DoGet(P152,2)+DoGet(P153,2)+DoGet(P154,2)+DoGet(P155,2)+DoGet(P160,2)+DoGet(P178,2)+DoGet(P191,2)+DoGet(P207,2)+DoGet(P208,2)+DoGet(P233,2)+DoGet(P241,2)+DoGet(P242,2)+DoGet(P248,2)+DoGet(P263,2)+DoGet(P270,2)+DoGet(P271,2)+DoGet(P272,2)+DoGet(P285,2)+DoGet(P296,2)";
+		
+		
+		String result = reader.convertFactorFormula(formula3);
+		System.out.println(result);
+	}
 }

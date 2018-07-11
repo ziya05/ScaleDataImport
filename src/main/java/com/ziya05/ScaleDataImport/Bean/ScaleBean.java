@@ -14,6 +14,9 @@ public class ScaleBean {
 	@MySqlFor(name = "description")
 	private String description;
 	
+	@MySqlFor(name = "questionCount")
+	private int questionCount;
+	
 	public ScaleBean() {
 		
 	}
@@ -46,6 +49,14 @@ public class ScaleBean {
 
 	public void setScaleNumber(String scaleNumber) {
 		this.scaleNumber = scaleNumber;
+	}
+
+	public int getQuestionCount() {
+		return questionCount;
+	}
+
+	public void setQuestionCount(int questionCount) {
+		this.questionCount = questionCount;
 	}
 
 	
