@@ -5,7 +5,7 @@ import java.sql.SQLException;
 public class DeleteApp {
 	public static void main( String[] args ) throws ClassNotFoundException, SQLException
     {
-		delete(93);
+		delete(89);
 		//deleteAll();
     }
 	

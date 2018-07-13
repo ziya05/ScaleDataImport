@@ -193,10 +193,18 @@ public class ScaleExcelReader {
 				break;
 			}
 			
+			int levelCount = getIntCell(row, 3);
+			
+			Boolean inChart = getIntCell(row, 4) == 1 ? true : false; 
+			
 			FactorBean bean = new FactorBean();
 			bean.setFactorId(factorId);
 			bean.setName(factorName);
 			bean.setFormula(formula);
+			bean.setLevelCount(levelCount);
+			bean.setInChart(inChart);
+			
+			System.out.println(factorName + ":" + inChart);
 			
 			factorLst.add(bean);
 		}
@@ -704,15 +712,18 @@ public class ScaleExcelReader {
 		return groupJumpLst;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		ScaleExcelReader reader = new ScaleExcelReader();
 		
-		String formula1 = "Q2+Q98+Q120+Q213+Q15+Q24+(If Q28==0 Then 1;)+(If Q47==0 Then 1;)+(If Q60==0 Then 1;)+(If Q73==0 Then 1;)+Q95+Q133+Q178+Q180+Q201+Q217+(If Q230==0 Then 1;)";
-		String formula2 = "If F46>99 Then 120; If F46<1 Then 20; If F46>=1 AND F46<=99 AND 基本信息.性别==男 Then Map(F46,\"Sc男\");If F46>=1 AND F46<=99 AND 基本信息.性别==女 Then Map(F46,\"Sc女\");";
-		String formula3 = "(If Q28==0 Then 1;)+DoGet(P5,1)+(If Q29==0 Then 1;)+DoGet(P32,2)+DoGet(P41,1)+DoGet(P43,5)+DoGet(P52,10)+DoGet(P67,1)+DoGet(P86,1)+DoGet(P104,1)+DoGet(P130,1)+DoGet(P138,1)+DoGet(P142,1)+DoGet(P158,1)+DoGet(P159,1)+DoGet(P182,1)+DoGet(P189,1)+DoGet(P193,1)+DoGet(P236,1)+DoGet(P259,1)+DoGet(P288,1)+DoGet(P290,1)+DoGet(P2,2)+DoGet(P8,2)+DoGet(P9,2)+DoGet(P18,2)+DoGet(P30,2)+DoGet(P36,2)+DoGet(P39,2)+DoGet(P46,2)+DoGet(P51,2)+DoGet(P57,2)+DoGet(P58,2)+DoGet(P64,2)+DoGet(P80,2)+DoGet(P88,2)+DoGet(P89,2)+DoGet(P95,2)+DoGet(P98,2)+DoGet(P107,2)+DoGet(P122,2)+DoGet(P131,2)+DoGet(P145,2)+DoGet(P152,2)+DoGet(P153,2)+DoGet(P154,2)+DoGet(P155,2)+DoGet(P160,2)+DoGet(P178,2)+DoGet(P191,2)+DoGet(P207,2)+DoGet(P208,2)+DoGet(P233,2)+DoGet(P241,2)+DoGet(P242,2)+DoGet(P248,2)+DoGet(P263,2)+DoGet(P270,2)+DoGet(P271,2)+DoGet(P272,2)+DoGet(P285,2)+DoGet(P296,2)";
+		String path = "E:\\projects\\resources\\scale\\spring 2.0\\新增量表\\待添加量表资料20180704\\1804-明尼苏达多相个性调查表(399).xlsx";
+		reader.read(path);
 		
-		
-		String result = reader.convertFactorFormula(formula3);
-		System.out.println(result);
+//		String formula1 = "Q2+Q98+Q120+Q213+Q15+Q24+(If Q28==0 Then 1;)+(If Q47==0 Then 1;)+(If Q60==0 Then 1;)+(If Q73==0 Then 1;)+Q95+Q133+Q178+Q180+Q201+Q217+(If Q230==0 Then 1;)";
+//		String formula2 = "If F46>99 Then 120; If F46<1 Then 20; If F46>=1 AND F46<=99 AND 基本信息.性别==男 Then Map(F46,\"Sc男\");If F46>=1 AND F46<=99 AND 基本信息.性别==女 Then Map(F46,\"Sc女\");";
+//		String formula3 = "(If Q28==0 Then 1;)+DoGet(P5,1)+(If Q29==0 Then 1;)+DoGet(P32,2)+DoGet(P41,1)+DoGet(P43,5)+DoGet(P52,10)+DoGet(P67,1)+DoGet(P86,1)+DoGet(P104,1)+DoGet(P130,1)+DoGet(P138,1)+DoGet(P142,1)+DoGet(P158,1)+DoGet(P159,1)+DoGet(P182,1)+DoGet(P189,1)+DoGet(P193,1)+DoGet(P236,1)+DoGet(P259,1)+DoGet(P288,1)+DoGet(P290,1)+DoGet(P2,2)+DoGet(P8,2)+DoGet(P9,2)+DoGet(P18,2)+DoGet(P30,2)+DoGet(P36,2)+DoGet(P39,2)+DoGet(P46,2)+DoGet(P51,2)+DoGet(P57,2)+DoGet(P58,2)+DoGet(P64,2)+DoGet(P80,2)+DoGet(P88,2)+DoGet(P89,2)+DoGet(P95,2)+DoGet(P98,2)+DoGet(P107,2)+DoGet(P122,2)+DoGet(P131,2)+DoGet(P145,2)+DoGet(P152,2)+DoGet(P153,2)+DoGet(P154,2)+DoGet(P155,2)+DoGet(P160,2)+DoGet(P178,2)+DoGet(P191,2)+DoGet(P207,2)+DoGet(P208,2)+DoGet(P233,2)+DoGet(P241,2)+DoGet(P242,2)+DoGet(P248,2)+DoGet(P263,2)+DoGet(P270,2)+DoGet(P271,2)+DoGet(P272,2)+DoGet(P285,2)+DoGet(P296,2)";
+//		
+//		
+//		String result = reader.convertFactorFormula(formula3);
+//		System.out.println(result);
 	}
 }

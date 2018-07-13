@@ -17,15 +17,12 @@ public class FactorBean {
 	@MySqlFor(name = "formula")
 	private String formula;
 	
-	public FactorBean() {}
-
-	public FactorBean(int scaleId, String name, String formula) {
-		super();
-		this.scaleId = scaleId;
-		this.name = name;
-		this.formula = formula;
-	}
-
+	@MySqlFor(name = "levelCount")
+	private int levelCount;
+	
+	@MySqlFor(name = "inChart")
+	private Boolean inChart;
+	
 	public int getScaleId() {
 		return scaleId;
 	}
@@ -56,6 +53,22 @@ public class FactorBean {
 
 	public void setFactorId(int factorId) {
 		this.factorId = factorId;
+	}
+
+	public int getLevelCount() {
+		return levelCount;
+	}
+
+	public void setLevelCount(int levelCount) {
+		this.levelCount = levelCount;
+	}
+
+	public Boolean getInChart() {
+		return inChart;
+	}
+
+	public void setInChart(Boolean inChart) {
+		this.inChart = inChart;
 	}
 	
 	
