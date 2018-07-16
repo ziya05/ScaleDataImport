@@ -33,7 +33,7 @@ public class App
     		throws IllegalArgumentException, IllegalAccessException, 
     		ClassNotFoundException, SQLException, IOException, BadLocationException
     {
-    	final String scaleNumber = "1210";
+    	final String scaleNumber = "1002";
     	//String dirPath = "E:\\projects\\resources\\scale\\量表资料\\量表资料\\";
     	String dirPath = "E:\\projects\\resources\\scale\\spring 2.0\\新增量表\\待添加量表资料20180704\\";
     	File f = new File(dirPath);
