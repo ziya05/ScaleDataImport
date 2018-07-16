@@ -23,6 +23,9 @@ public class FactorBean {
 	@MySqlFor(name = "inChart")
 	private Boolean inChart;
 	
+	@MySqlFor(name = "inResult")
+	private Boolean inResult;
+	
 	public int getScaleId() {
 		return scaleId;
 	}
@@ -69,6 +72,14 @@ public class FactorBean {
 
 	public void setInChart(Boolean inChart) {
 		this.inChart = inChart;
+	}
+
+	public Boolean getInResult() {
+		return inResult;
+	}
+
+	public void setInResult(Boolean inResult) {
+		this.inResult = inResult;
 	}
 	
 	

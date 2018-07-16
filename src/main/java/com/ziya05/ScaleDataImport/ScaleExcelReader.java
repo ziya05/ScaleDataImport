@@ -197,14 +197,22 @@ public class ScaleExcelReader {
 			
 			Boolean inChart = getIntCell(row, 4) == 1 ? true : false; 
 			
+			String strInResult = getStringCell(row, 9);
+			Boolean inResult = true;
+			if (!StringUtils.isNullOrEmpty(strInResult)
+					&& Double.parseDouble(strInResult) == 0) {
+				inResult = false;
+			}
+			
 			FactorBean bean = new FactorBean();
 			bean.setFactorId(factorId);
 			bean.setName(factorName);
 			bean.setFormula(formula);
 			bean.setLevelCount(levelCount);
 			bean.setInChart(inChart);
+			bean.setInResult(inResult);
 			
-			System.out.println(factorName + ":" + inChart);
+			System.out.println(factorName + ":" + inChart + ":" + inResult);
 			
 			factorLst.add(bean);
 		}
@@ -715,7 +723,7 @@ public class ScaleExcelReader {
 	public static void main(String[] args) throws IOException {
 		ScaleExcelReader reader = new ScaleExcelReader();
 		
-		String path = "E:\\projects\\resources\\scale\\spring 2.0\\新增量表\\待添加量表资料20180704\\1804-明尼苏达多相个性调查表(399).xlsx";
+		String path = "E:\\projects\\resources\\scale\\spring 2.0\\新增量表\\待添加量表资料20180704\\1202-艾森克人格问卷成人式.xlsx";
 		reader.read(path);
 		
 //		String formula1 = "Q2+Q98+Q120+Q213+Q15+Q24+(If Q28==0 Then 1;)+(If Q47==0 Then 1;)+(If Q60==0 Then 1;)+(If Q73==0 Then 1;)+Q95+Q133+Q178+Q180+Q201+Q217+(If Q230==0 Then 1;)";
